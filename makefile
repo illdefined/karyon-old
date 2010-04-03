@@ -1,58 +1,62 @@
-.PHONY: all clean config menuconfig silentconfig
-.POSIX:
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),config)
+ifneq ($(MAKECMDGOALS),distclean)
 
-CC         = clang
-CPP        = $(CC) -E
+-include .config
+-include .depend
 
-CFLAGS     = -std=c99 -O3 -ffreestanding -Wall -pedantic
-CPPFLAGS   = -nostdinc -Iinclude
-LDFLAGS    = -nostdlib
+ARCH        := $(patsubst "%",%,$(CONFIG_ARCH))
 
-HOSTCC     = clang
-HOSTCFLAGS = -O3
+CC          := $(patsubst "%",%,$(CONFIG_CC))
 
-conf-src   = util/kconfig/conf.c \
-             util/kconfig/zconf.tab.c
+CFLAGS      := -pipe -O2 -ffreestanding -Wall -pedantic
+CFLAGS      += -fmerge-all-constants -fstrict-overflow
+CFLAGS      += -fwhole-program -frename-registers
+CFLAGS      += -freg-struct-return
 
-mconf-src  = util/kconfig/mconf.c \
-             util/kconfig/zconf.tab.c \
-             util/kconfig/lxdialog/checklist.c \
-             util/kconfig/lxdialog/menubox.c \
-             util/kconfig/lxdialog/util.c \
-             util/kconfig/lxdialog/inputbox.c \
-             util/kconfig/lxdialog/textbox.c \
-             util/kconfig/lxdialog/yesno.c
+ifdef CONFIG_GCC
+CFLAGS      += -fshort-enums
+endif
 
-all: stageone
-	$(MAKE) -f stageone stagetwo
-	$(MAKE) -f stagetwo karyon
+CPPFLAGS    := -std=c99 -nostdinc -Iinclude -Iarch/$(ARCH)/include
+LDFLAGS     := -nostdlib -static -Wl,-T arch/$(ARCH)/karyon.ld
+
+-include arch/$(ARCH)/makefile
+
+karyon: .depend arch/$(ARCH)/karyon.ld
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ $(src-y)
+
+.depend: .config $(src-y)
+	$(CC) $(CPPFLAGS) -M -MT karyon $(src-y) >$@
+
+.config: conf
+	KCONFIG_AUTOHEADER="include/config.h" \
+	./conf -s Kconfig
+
+endif
+endif
+endif
+
+HOSTCC      ?= clang
+
+HOSTCFLAGS  ?= -pipe -O2 -w
+HOSTLDFLAGS ?= -s
+
+include util/kconfig/makefile
+
+conf: $(src-conf)
+	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
+
+mconf: $(src-mconf)
+	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^ -lcurses
 
 clean:
-	rm -f -- conf mconf stageone stagetwo karyon
+	rm -f conf mconf karyon
 
-config: conf
-	./$< Kconfig
+config: mconf
+	./mconf Kconfig
 
-silentconfig: conf
-	./$< -s Kconfig
+distclean: clean
+	rm -f .config .config.old .depend include/config.h
 
-menuconfig: mconf
-	./$< Kconfig
-
-conf: $(conf-src)
-	$(HOSTCC) $(HOSTCFLAGS) -o $@ $(conf-src)
-
-mconf: $(mconf-src)
-	$(HOSTCC) $(HOSTCFLAGS) -o $@ $(mconf-src) -lcurses
-
-.config: silentconfig
-
-stageone: .config rules makefile
-	cat .config rules makefile >$@
-
-stagetwo: .config rules makefile $(src-y)
-	cat .config rules makefile >$@
-	$(CPP) $(CPPFLAGS) -M -MT karyon $(src-y) >>$@
-
-karyon:
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ $(src-y)
+.PHONY: clean config distclean
