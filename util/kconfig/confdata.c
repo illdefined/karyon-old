@@ -41,12 +41,14 @@ const char *conf_get_configname(void)
 	return name ? name : ".config";
 }
 
+#if 0
 const char *conf_get_autoconfig_name(void)
 {
 	char *name = getenv("KCONFIG_AUTOCONFIG");
 
 	return name ? name : "include/config/auto.conf";
 }
+#endif
 
 static char *conf_expand_value(const char *in)
 {
@@ -569,8 +571,10 @@ static int conf_split_config(void)
 	struct stat sb;
 	int res, i, fd;
 
+#if 0
 	name = conf_get_autoconfig_name();
 	conf_read_simple(name, S_DEF_AUTO);
+#endif
 
 	if (chdir("include/config"))
 		return 1;
@@ -683,6 +687,7 @@ int conf_write_autoconf(void)
 
 	sym_clear_all_valid();
 
+#if 0
 	file_write_dep("include/config/auto.conf.cmd");
 
 	if (conf_split_config())
@@ -697,17 +702,21 @@ int conf_write_autoconf(void)
 		fclose(out);
 		return 1;
 	}
+#endif
 
 	out_h = fopen(".tmpconfig.h", "w");
 	if (!out_h) {
 		fclose(out);
+#if 0
 		fclose(tristate);
+#endif
 		return 1;
 	}
 
 	sym = sym_lookup("KERNELVERSION", 0);
 	sym_calc_value(sym);
 	time(&now);
+#if 0
 	fprintf(out, "#\n"
 		     "# Automatically generated make config: don't edit\n"
 		     "# Linux kernel version: %s\n"
@@ -717,6 +726,7 @@ int conf_write_autoconf(void)
 	fprintf(tristate, "#\n"
 			  "# Automatically generated - do not edit\n"
 			  "\n");
+#endif
 	fprintf(out_h, "/*\n"
 		       " * Automatically generated C config: don't edit\n"
 		       " * Linux kernel version: %s\n"
@@ -736,57 +746,75 @@ int conf_write_autoconf(void)
 			case no:
 				break;
 			case mod:
+#if 0
 				fprintf(out, "CONFIG_%s=m\n", sym->name);
 				fprintf(tristate, "CONFIG_%s=M\n", sym->name);
+#endif
 				fprintf(out_h, "#define CONFIG_%s_MODULE 1\n", sym->name);
 				break;
 			case yes:
+#if 0
 				fprintf(out, "CONFIG_%s=y\n", sym->name);
 				if (sym->type == S_TRISTATE)
 					fprintf(tristate, "CONFIG_%s=Y\n",
 							sym->name);
+#endif
 				fprintf(out_h, "#define CONFIG_%s 1\n", sym->name);
 				break;
 			}
 			break;
 		case S_STRING:
 			str = sym_get_string_value(sym);
+#if 0
 			fprintf(out, "CONFIG_%s=\"", sym->name);
+#endif
 			fprintf(out_h, "#define CONFIG_%s \"", sym->name);
 			while (1) {
 				l = strcspn(str, "\"\\");
 				if (l) {
+#if 0
 					fwrite(str, l, 1, out);
+#endif
 					fwrite(str, l, 1, out_h);
 					str += l;
 				}
 				if (!*str)
 					break;
+#if 0
 				fprintf(out, "\\%c", *str);
+#endif
 				fprintf(out_h, "\\%c", *str);
 				str++;
 			}
+#if 0
 			fputs("\"\n", out);
+#endif
 			fputs("\"\n", out_h);
 			break;
 		case S_HEX:
 			str = sym_get_string_value(sym);
 			if (str[0] != '0' || (str[1] != 'x' && str[1] != 'X')) {
+#if 0
 				fprintf(out, "CONFIG_%s=%s\n", sym->name, str);
+#endif
 				fprintf(out_h, "#define CONFIG_%s 0x%s\n", sym->name, str);
 				break;
 			}
 		case S_INT:
 			str = sym_get_string_value(sym);
+#if 0
 			fprintf(out, "CONFIG_%s=%s\n", sym->name, str);
+#endif
 			fprintf(out_h, "#define CONFIG_%s %s\n", sym->name, str);
 			break;
 		default:
 			break;
 		}
 	}
+#if 0
 	fclose(out);
 	fclose(tristate);
+#endif
 	fclose(out_h);
 
 	name = getenv("KCONFIG_AUTOHEADER");
@@ -794,6 +822,7 @@ int conf_write_autoconf(void)
 		name = "include/generated/autoconf.h";
 	if (rename(".tmpconfig.h", name))
 		return 1;
+#if 0
 	name = getenv("KCONFIG_TRISTATE");
 	if (!name)
 		name = "include/config/tristate.conf";
@@ -806,6 +835,7 @@ int conf_write_autoconf(void)
 	 */
 	if (rename(".tmpconfig", name))
 		return 1;
+#endif
 
 	return 0;
 }

@@ -26,6 +26,7 @@ struct file *file_lookup(const char *name)
 	return file;
 }
 
+#if 0
 /* write a dependency file as used by kbuild to track dependencies */
 int file_write_dep(const char *name)
 {
@@ -70,6 +71,7 @@ int file_write_dep(const char *name)
 	rename("..config.tmp", name);
 	return 0;
 }
+#endif
 
 
 /* Allocate initial growable sting */
