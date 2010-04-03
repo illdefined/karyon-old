@@ -1,6 +1,5 @@
 .PHONY: all clean config menuconfig silentconfig
 .POSIX:
-.SILENT:
 
 CC         = clang
 CPP        = $(CC) -E
@@ -29,14 +28,7 @@ all: stageone
 	$(MAKE) -f stagetwo karyon
 
 clean:
-	printf "\033[k\033[0;33mCleaning up…\033[m\r"; \
-	if rm -f -- conf mconf stageone stagetwo karyon; \
-	then \
-		printf "\033[k\033[0;34mSuccessfully cleaned up.\033[m\n"; \
-	else \
-		printf "\033[k\033[0;31mFailed to clean up!\033[m\n"; \
-		exit 1; \
-	fi
+	rm -f -- conf mconf stageone stagetwo karyon
 
 config: conf
 	./$< Kconfig
@@ -48,56 +40,19 @@ menuconfig: mconf
 	./$< Kconfig
 
 conf: $(conf-src)
-	printf "\033[k\033[0;33mCompiling \033[1;33m$@\033[0;33m…\033[m\r"; \
-	if $(HOSTCC) $(HOSTCFLAGS) -o $@ $(conf-src); \
-	then \
-		printf "\033[k\033[0;32mSuccessfully compiled \033[1;32m$@\033[0;32m.\033[m\n"; \
-	else \
-		printf "\033[k\033[0;31mFailed to compile \033[1;31m$@\033[0;31m!\033[m\n"; \
-		exit 1; \
-	fi
+	$(HOSTCC) $(HOSTCFLAGS) -o $@ $(conf-src)
 
 mconf: $(mconf-src)
-	printf "\033[k\033[0;33mCompiling \033[1;33m$@\033[0;33m…\033[m\r"; \
-	if $(HOSTCC) $(HOSTCFLAGS) -o $@ $(mconf-src) -lcurses; \
-	then \
-		printf "\033[k\033[0;32mSuccessfully compiled \033[1;32m$@\033[0;32m.\033[m\n"; \
-	else \
-		printf "\033[k\033[0;31mFailed to compile \033[1;31m$@\033[0;31m!\033[m\n"; \
-		exit 1; \
-	fi
+	$(HOSTCC) $(HOSTCFLAGS) -o $@ $(mconf-src) -lcurses
 
 .config: silentconfig
 
 stageone: .config rules makefile
-	printf "\033[k\033[0;33mGenerating dependency stage one…\033[m\r"; \
-	if \
-		cat .config rules makefile >$@; \
-	then \
-		printf "\033[k\033[0;36mSuccessfully generated dependency stage one.\033[m\n"; \
-	else \
-		printf "\033[k\033[0;31mFailed to generate dependency stage one!\033[m\n"; \
-		exit 1; \
-	fi
+	cat .config rules makefile >$@
 
 stagetwo: .config rules makefile $(src-y)
-	printf "\033[k\033[0;33mGenerating dependency stage two…\033[m\r"; \
-	if \
-		cat .config rules makefile >$@ && \
-		$(CPP) $(CPPFLAGS) -M -MT karyon $(src-y) >>$@; \
-	then \
-		printf "\033[k\033[0;36mSuccessfully generated dependency stage two.\033[m\n"; \
-	else \
-		printf "\033[k\033[0;31mFailed to generate dependency stage two!\033[m\n"; \
-		exit 1; \
-	fi
+	cat .config rules makefile >$@
+	$(CPP) $(CPPFLAGS) -M -MT karyon $(src-y) >>$@
 
 karyon:
-	printf "\033[k\033[0;33mCompiling \033[1;33m$@\033[0;33m…\033[m\r"; \
-	if $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ $(src-y); \
-	then \
-		printf "\033[k\033[0;32mSuccessfully compiled \033[1;32m$@\033[0;32m.\033[m\n"; \
-	else \
-		printf "\033[k\033[0;31mFailed to compile \033[1;31m$@\033[0;31m!\033[m\n"; \
-		exit 1; \
-	fi
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ $(src-y)
