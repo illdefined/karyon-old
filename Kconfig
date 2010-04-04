@@ -1,0 +1,27 @@
+choice
+	prompt "C compiler"
+
+config CLANG
+	bool "Clang"
+
+config GCC
+	bool "GNU C Compiler"
+
+endchoice
+
+config CC
+	string
+	default "clang" if CLANG
+	default "gcc"   if GCC
+
+choice
+	prompt "Architecture"
+
+config X86
+	bool "x86"
+
+endchoice
+
+config ARCH
+	string
+	default "x86" if X86
