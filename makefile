@@ -12,7 +12,7 @@ CC          := $(patsubst "%",%,$(CONFIG_CC))
 CFLAGS      := -pipe -O2 -ffreestanding -Wall -pedantic
 CFLAGS      += -fmerge-all-constants -fstrict-overflow
 CFLAGS      += -fwhole-program -frename-registers
-CFLAGS      += -freg-struct-return
+CFLAGS      += -fno-common -freg-struct-return
 
 ifdef CONFIG_GCC
 CFLAGS      += -fshort-enums
