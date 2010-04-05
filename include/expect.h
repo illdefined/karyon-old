@@ -21,7 +21,7 @@
 #if defined(__clang__) || defined(__GNUC__)
 # define expect(expr, val) __builtin_expect((expr), (val))
 #else
-# define expect(expr)      (expr)
+# define expect(expr, val) (expr)
 #endif
 
 /**
