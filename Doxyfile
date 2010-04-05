@@ -1,7 +1,7 @@
 PROJECT_NAME = καρυόν
 OUTPUT_DIRECTORY = doc
 INPUT = arch include
-FILE_PATTERNS = *.S *.c *.h
+FILE_PATTERNS = *.c *.h
 RECURSIVE = YES
 
 TAB_SIZE = 4
