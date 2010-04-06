@@ -20,6 +20,7 @@ CFLAGS      += -fshort-enums
 endif
 
 CPPFLAGS    := -std=c99 -nostdinc -Iinclude -Iarch/$(ARCH)/include
+CPPFLAGS    += -include include/config.h
 LDFLAGS     := -nostdlib -static -Wl,-T karyon.ld
 
 -include arch/$(ARCH)/makefile
