@@ -56,7 +56,7 @@ mconf: $(src-mconf)
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^ -lcurses
 
 clean:
-	rm -f conf mconf karyon
+	rm -f conf mconf karyon karyon.ld
 
 config: mconf
 	./mconf Kconfig
