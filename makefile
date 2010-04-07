@@ -28,13 +28,13 @@ LDFLAGS     := -nostdlib -static -Wl,-T karyon.ld
 karyon: .depend karyon.ld
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@ $(src-y)
 
-karyon.ld: .config arch/$(ARCH)/karyon.ld.S
-	$(CPP) $(CPPFLAGS) -P -D__ASSEMBLY__ -o $@ arch/$(ARCH)/karyon.ld.S
-
 .depend: .config $(src-y)
 	$(CPP) $(CPPFLAGS) -M -MT karyon $(src-y) >$@
 
-.config: conf
+karyon.ld: include/config.h arch/$(ARCH)/karyon.ld.S
+	$(CPP) $(CPPFLAGS) -P -D__ASSEMBLY__ -o $@ arch/$(ARCH)/karyon.ld.S
+
+include/config.h: .config
 	KCONFIG_AUTOHEADER="include/config.h" \
 	./conf -s Kconfig
 
