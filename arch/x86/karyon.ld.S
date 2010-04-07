@@ -1,10 +1,8 @@
+#include <memory.h>
+
 OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
 OUTPUT_ARCH(i386:x86-64)
 ENTRY(_entry)
-
-_origin_virt = 0xFFFF800000000000;
-_page_size = CONSTANT(COMMONPAGESIZE);
-_word_size = 8;
 
 PHDRS {
 	multiboot PT_NOTE FLAGS(0);
@@ -18,52 +16,45 @@ SECTIONS {
 		*(.multiboot)
 	} :multiboot
 
-	. = _origin_virt + SIZEOF_HEADERS;
+	. = KERN_BASE + SIZEOF_HEADERS;
 
-	.text ALIGN(_page_size) :
-	AT(ADDR(.text) - _origin_virt) {
+	.text ALIGN(PAGE_SIZE) :
+	AT(ADDR(.text) - KERN_BASE) {
 		*(.text)
 	} :text =0x90909090
 
-	.stack ALIGN(_page_size) :
-	AT(ADDR(.stack) - _origin_virt) {
+	.stack ALIGN(PAGE_SIZE) :
+	AT(ADDR(.stack) - KERN_BASE) {
 		*(.stack)
 	} :data
 
-	.rodata ALIGN(_page_size) :
-	AT(ADDR(.rodata) - _origin_virt) {
+	.rodata ALIGN(PAGE_SIZE) :
+	AT(ADDR(.rodata) - KERN_BASE) {
 		*(.rodata)
 	} :rodata
 
-	.data ALIGN(_page_size) :
-	AT(ADDR(.data) - _origin_virt) {
+	.data ALIGN(PAGE_SIZE) :
+	AT(ADDR(.data) - KERN_BASE) {
 		*(.data)
 	} :data
 
-	.bss ALIGN(_word_size):
-	AT(ADDR(.bss)  - _origin_virt) {
+	.bss ALIGN(WORD_SIZE):
+	AT(ADDR(.bss)  - KERN_BASE) {
 		*(.bss)
 	} :data
 }
 
-PROVIDE(_text_virt = ADDR(.text));
-PROVIDE(_text_phys = LOADADDR(.text));
-PROVIDE(_text_size = SIZEOF(.text));
+PROVIDE(_text_page = LOADADDR(.text) / PAGE_SIZE);
+PROVIDE(_text_size = ALIGN(SIZEOF(.text), PAGE_SIZE) / PAGE_SIZE);
 
-PROVIDE(_stack_virt = ADDR(.stack));
-PROVIDE(_stack_phys = LOADADDR(.stack));
-PROVIDE(_stack_size = SIZEOF(.stack));
+PROVIDE(_stack_page = LOADADDR(.stack) / PAGE_SIZE);
+PROVIDE(_stack_size = ALIGN(SIZEOF(.stack), PAGE_SIZE) / PAGE_SIZE);
 
-PROVIDE(_rodata_virt = ADDR(.rodata));
-PROVIDE(_rodata_phys = LOADADDR(.rodata));
-PROVIDE(_rodata_size = SIZEOF(.rodata));
+PROVIDE(_rodata_page = LOADADDR(.rodata) / PAGE_SIZE);
+PROVIDE(_rodata_size = ALIGN(SIZEOF(.rodata), PAGE_SIZE) / PAGE_SIZE);
 
-PROVIDE(_data_virt = ADDR(.data));
-PROVIDE(_data_phys = LOADADDR(.data));
-PROVIDE(_data_size = SIZEOF(.data));
+PROVIDE(_data_page = LOADADDR(.data) / PAGE_SIZE);
+PROVIDE(_data_size = ALIGN(ALIGN(SIZEOF(.data), WORD_SIZE) + SIZEOF(.bss), PAGE_SIZE) / PAGE_SIZE);
 
-PROVIDE(_bss_virt = ADDR(.bss));
-PROVIDE(_bss_phys = LOADADDR(.bss));
-PROVIDE(_bss_size = SIZEOF(.bss));
-
-PROVIDE(_ptbl_phys = ptbl - _origin_virt);
+PROVIDE(_bss_org = LOADADDR(.bss));
+PROVIDE(_bss_len = ALIGN(SIZEOF(.bss), WORD_SIZE));
