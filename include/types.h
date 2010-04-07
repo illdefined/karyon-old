@@ -10,6 +10,9 @@
 
 #ifndef __ASSEMBLY__
 
+#define __aligned(x) __attribute__((aligned(x)))
+#define __packed     __attribute__((packed))
+
 /**
  * \brief Natural width constant.
  */
