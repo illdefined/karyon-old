@@ -48,7 +48,7 @@
 /**
  * \brief Signed 64‐bit integer constant.
  */
-#define U64(x)  x ## LL
+#define S64(x)  x ## LL
 
 /**
  * \brief Unsigned 64‐bit integer constant.
@@ -118,7 +118,7 @@ typedef unsigned long long u64;
 #define S32(x)  x
 #define U32(x)  x
 
-#define U64(x)  x
+#define S64(x)  x
 #define U64(x)  x
 
 #endif /* __ASSEMBLY__ */
